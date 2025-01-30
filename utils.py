@@ -111,56 +111,7 @@ def combine_transcript_segments(transcript, window_size=5):
     
     return combined_segments
 
-def analyze_with_llm(content, task, question=None):
-    """Analyze content using Gemini model."""
-    print(f"\nAnalyzing content with LLM for task: {task}")
-    
-    # Convert transcript segments into a single text with timestamps
-    if isinstance(content, str) and task == 'fact_check':
-        content = json.loads(content)
-    
-    formatted_text = ""
-    if task == 'fact_check':
-        # Process transcript in 2-minute chunks for better organization
-        chunk_size = 120  # 2 minutes in seconds
-        chunks = []
-        current_chunk = []
-        current_chunk_duration = 0
-        
-        # Split into chunks first
-        for entry in content:
-            if current_chunk_duration + entry['duration'] > chunk_size:
-                chunks.append(current_chunk)
-                current_chunk = [entry]
-                current_chunk_duration = entry['duration']
-            else:
-                current_chunk.append(entry)
-                current_chunk_duration += entry['duration']
-        
-        if current_chunk:
-            chunks.append(current_chunk)
-        
-        # Format all chunks into one text
-        for i, chunk in enumerate(chunks, 1):
-            chunk_start = format_timestamp(chunk[0]['start'])
-            chunk_end = format_timestamp(chunk[-1]['start'] + chunk[-1]['duration'])
-            formatted_text += f"\nCHUNK {i} [{chunk_start} - {chunk_end}]:\n"
-            
-            for entry in chunk:
-                timestamp = format_timestamp(entry['start'])
-                end_timestamp = format_timestamp(entry['start'] + entry['duration'])
-                formatted_text += f"[{timestamp}-{end_timestamp}] {entry['text']}\n"
-        
-        print(f"Split transcript into {len(chunks)} chunks")
-        print(formatted_text)
-    else:
-        if isinstance(content, list):
-            # Format transcript entries into readable text
-            formatted_text = ' '.join([entry['text'] for entry in content])
-        else:
-            formatted_text = content
-    
-    print("Sending to LLM for analysis...")
+
     
     prompts = {
         'fact_check': """IMPORTANT: For every claim, you must choose one of these statuses:
