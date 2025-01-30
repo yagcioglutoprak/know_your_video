@@ -90,77 +90,159 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const summaryContent = `
                     <div class="space-y-6">
-                        <div class="bg-black/30 rounded-lg p-4 border border-pink-500/30">
-                            <h3 class="text-lg font-semibold text-pink-400 mb-2">Overview</h3>
-                            <p class="text-pink-100">${summaryData.brief_overview}</p>
+                        <div class="bg-gray-900/50 rounded-xl p-4 backdrop-blur-sm border border-gray-800">
+                            <h3 class="text-lg font-semibold text-gray-100 mb-2">Overview</h3>
+                            <p class="text-gray-200">${summaryData.brief_overview}</p>
                         </div>
                         
-                        <div class="bg-black/30 rounded-lg p-4 border border-pink-500/30">
-                            <h3 class="text-lg font-semibold text-pink-400 mb-4">Detailed Summary</h3>
+                        <div class="bg-gray-900/50 rounded-xl p-4 backdrop-blur-sm border border-gray-800">
+                            <h3 class="text-lg font-semibold text-gray-100 mb-4">Detailed Summary</h3>
                             <div class="space-y-4">
-                                <div>
-                                    <h4 class="font-medium text-pink-300">Introduction ${createTimestampButton(summaryData.detailed_summary.introduction_timestamp)}</h4>
-                                    <p class="text-pink-100">${summaryData.detailed_summary.introduction}</p>
+                                <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                                    <h4 class="text-gray-100 font-medium mb-2">Introduction</h4>
+                                    <p class="text-gray-200">${summaryData.detailed_summary.introduction}</p>
                                 </div>
-                                <div>
-                                    <h4 class="font-medium text-pink-300">Main Content ${createTimestampButton(summaryData.detailed_summary.main_content_timestamp)}</h4>
-                                    <p class="text-pink-100">${summaryData.detailed_summary.main_content}</p>
+                                <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                                    <h4 class="text-gray-100 font-medium mb-2">Main Content</h4>
+                                    <p class="text-gray-200">${summaryData.detailed_summary.main_content}</p>
                                 </div>
-                                <div>
-                                    <h4 class="font-medium text-pink-300">Conclusion ${createTimestampButton(summaryData.detailed_summary.conclusion_timestamp)}</h4>
-                                    <p class="text-pink-100">${summaryData.detailed_summary.conclusion}</p>
+                                <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                                    <h4 class="text-gray-100 font-medium mb-2">Conclusion</h4>
+                                    <p class="text-gray-200">${summaryData.detailed_summary.conclusion}</p>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="bg-black/30 rounded-lg p-4 border border-pink-500/30">
-                                <h3 class="text-lg font-semibold text-pink-400 mb-2">Topics Covered</h3>
+                            <div class="bg-gray-900/50 rounded-xl p-4 backdrop-blur-sm border border-gray-800">
+                                <h3 class="text-lg font-semibold text-gray-100 mb-2">Topics Covered</h3>
                                 <ul class="list-disc list-inside space-y-1">
                                     ${summaryData.topics_covered.map(topic => `
-                                        <li class="text-pink-100">${topic}</li>
+                                        <li class="text-gray-200">${topic}</li>
                                     `).join('')}
                                 </ul>
                             </div>
                             
-                            <div class="bg-black/30 rounded-lg p-4 border border-pink-500/30">
-                                <h3 class="text-lg font-semibold text-pink-400 mb-2">Key Takeaways</h3>
+                            <div class="bg-gray-900/50 rounded-xl p-4 backdrop-blur-sm border border-gray-800">
+                                <h3 class="text-lg font-semibold text-gray-100 mb-2">Key Takeaways</h3>
                                 <ul class="list-disc list-inside space-y-1">
                                     ${summaryData.key_takeaways.map(point => `
-                                        <li class="text-pink-100">${point}</li>
+                                        <li class="text-gray-200">${point}</li>
                                     `).join('')}
                                 </ul>
                             </div>
                         </div>
-                        
-                        <div class="bg-black/30 rounded-lg p-4 border border-pink-500/30">
-                            <h3 class="text-lg font-semibold text-pink-400 mb-2">Target Audience</h3>
-                            <p class="text-pink-100">${summaryData.target_audience}</p>
-                        </div>
                     </div>
                 `;
                 
-                const summaryTab = document.getElementById('summary');
-                if (summaryTab) {
-                    const summaryContentElement = summaryTab.querySelector('.prose');
-                    if (summaryContentElement) {
-                        summaryContentElement.innerHTML = summaryContent;
-                    }
-                }
+                updateTabContent('#summary', summaryContent);
             } catch (error) {
                 console.error('Error parsing summary:', error);
-                const summaryTab = document.getElementById('summary');
-                if (summaryTab) {
-                    const summaryContentElement = summaryTab.querySelector('.prose');
-                    if (summaryContentElement) {
-                        summaryContentElement.innerHTML = `
-                            <div class="p-4 bg-black/30 rounded-lg border border-pink-500/30">
-                                <p class="text-pink-400">Error displaying summary: ${error.message}</p>
-                                <p class="text-pink-300 mt-2">Please try analyzing the video again.</p>
+                updateTabContent('#summary', '<p class="text-red-500">Error displaying summary</p>');
+            }
+        }
+
+        // Update key points tab
+        if (data.key_points) {
+            try {
+                const keyPointsData = typeof data.key_points === 'string' ? JSON.parse(data.key_points) : data.key_points;
+                const keyPointsContent = `
+                    <div class="space-y-4">
+                        ${keyPointsData.main_points.map(point => `
+                            <div class="keypoint-item">
+                                ${point.timestamp ? 
+                                    `<div class="keypoint-timestamp mb-2" onclick="seekToTime('${point.timestamp}')">${point.timestamp}</div>` 
+                                    : ''
+                                }
+                                <p class="text-gray-200 font-medium">${point.point}</p>
+                                ${point.details ? `<p class="text-gray-300 mt-2 text-sm">${point.details}</p>` : ''}
+                                ${point.importance ? `<span class="inline-block mt-2 px-2 py-1 text-xs rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">${point.importance}</span>` : ''}
                             </div>
-                        `;
-                    }
-                }
+                        `).join('')}
+                        
+                        ${keyPointsData.themes ? `
+                            <div class="mt-8 bg-gray-900/50 rounded-xl p-4 backdrop-blur-sm border border-gray-800">
+                                <h3 class="text-lg font-semibold text-gray-100 mb-2">Overall Themes</h3>
+                                <ul class="list-disc list-inside space-y-1">
+                                    ${keyPointsData.themes.map(theme => `
+                                        <li class="text-gray-200">${theme}</li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                updateTabContent('#keypoints-content', keyPointsContent);
+            } catch (error) {
+                console.error('Error parsing key points:', error);
+                updateTabContent('#keypoints-content', '<p class="text-red-500">Error displaying key points</p>');
+            }
+        }
+
+        // Update fact check tab
+        if (data.fact_check) {
+            try {
+                const factCheckData = typeof data.fact_check === 'string' ? JSON.parse(data.fact_check) : data.fact_check;
+                
+                // Group facts by status
+                const groupedFacts = factCheckData.results.reduce((acc, fact) => {
+                    const status = fact.status.toUpperCase();
+                    if (!acc[status]) acc[status] = [];
+                    acc[status].push(fact);
+                    return acc;
+                }, {});
+
+                const factCheckContent = `
+                    <div class="space-y-8">
+                        ${groupedFacts['TRUE'] ? `
+                            <div class="fact-group">
+                                <h3 class="text-lg font-semibold text-green-400 mb-4 flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Verified Facts
+                                </h3>
+                                <div class="space-y-4">
+                                    ${groupedFacts['TRUE'].map(fact => renderFactItem(fact, 'true')).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${groupedFacts['FALSE'] ? `
+                            <div class="fact-group">
+                                <h3 class="text-lg font-semibold text-red-400 mb-4 flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    False Claims
+                                </h3>
+                                <div class="space-y-4">
+                                    ${groupedFacts['FALSE'].map(fact => renderFactItem(fact, 'false')).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${groupedFacts['SKIP'] ? `
+                            <div class="fact-group">
+                                <h3 class="text-lg font-semibold text-yellow-400 mb-4 flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                    </svg>
+                                    Unverified Claims
+                                </h3>
+                                <div class="space-y-4">
+                                    ${groupedFacts['SKIP'].map(fact => renderFactItem(fact, 'skip')).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                updateTabContent('#factcheck-content', factCheckContent);
+            } catch (error) {
+                console.error('Error parsing fact check:', error);
+                updateTabContent('#factcheck-content', '<p class="text-red-500">Error displaying fact check results</p>');
             }
         }
 
@@ -251,12 +333,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                     ${references.length > 0 ? `
                                         <div class="space-y-1">
                                             <p class="text-red-400 text-xs font-medium">Sources:</p>
-                                            ${references.map(ref => `
-                                                <a href="${ref}" target="_blank" rel="noopener noreferrer" 
-                                                   class="block text-red-400 hover:text-red-300 text-xs whitespace-normal break-all">
-                                                    ${ref}
-                                                </a>
-                                            `).join('')}
+                                            <div class="space-y-1">
+                                                ${references.map(ref => `
+                                                    <a href="${ref}" target="_blank" rel="noopener noreferrer" 
+                                                       class="block text-red-400 hover:text-red-300 text-xs whitespace-normal break-all">
+                                                        ${ref}
+                                                    </a>
+                                                `).join('')}
+                                            </div>
                                         </div>
                                     ` : ''}
                                 </div>
@@ -906,3 +990,86 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// Helper function to render a fact item
+function renderFactItem(fact, type) {
+    const statusClasses = {
+        true: 'bg-green-900/20 border-green-700/30',
+        false: 'bg-red-900/20 border-red-700/30',
+        skip: 'bg-yellow-900/20 border-yellow-700/30'
+    };
+
+    const statusBadgeClasses = {
+        true: 'bg-green-500/10 text-green-400 border border-green-500/20',
+        false: 'bg-red-500/10 text-red-400 border border-red-500/20',
+        skip: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+    };
+
+    const icons = {
+        true: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
+        false: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>',
+        skip: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>'
+    };
+
+    return `
+        <div class="fact-item p-4 rounded-lg border ${statusClasses[type]}">
+            <div class="flex items-start gap-4">
+                <div class="flex-1">
+                    ${fact.timestamp_range || fact.timestamp ? `
+                        <div class="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="cursor-pointer hover:text-blue-400 transition-colors" 
+                                  onclick="seekToTime('${fact.timestamp_range || fact.timestamp}')">
+                                ${fact.timestamp_range || fact.timestamp}
+                            </span>
+                        </div>
+                    ` : ''}
+                    <div class="flex items-start gap-2">
+                        <span class="mt-1">${icons[type]}</span>
+                        <div>
+                            <p class="text-gray-200 font-medium">${fact.claim}</p>
+                            <p class="text-gray-300 mt-2 text-sm">${fact.explanation}</p>
+                        </div>
+                    </div>
+                    ${fact.references && fact.references.length > 0 ? `
+                        <div class="mt-3 pl-6">
+                            <h4 class="text-sm font-medium text-gray-400 mb-1">References:</h4>
+                            <ul class="list-disc list-inside text-sm text-gray-300">
+                                ${fact.references.map(ref => `
+                                    <li>${ref}</li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Helper functions for fact check styling
+function getFactStatusClass(status) {
+    switch (status.toUpperCase()) {
+        case 'TRUE':
+            return 'bg-green-900/20 border-green-700/30';
+        case 'FALSE':
+            return 'bg-red-900/20 border-red-700/30';
+        case 'SKIP':
+        default:
+            return 'bg-yellow-900/20 border-yellow-700/30';
+    }
+}
+
+function getFactStatusBadgeClass(status) {
+    switch (status.toUpperCase()) {
+        case 'TRUE':
+            return 'bg-green-500/10 text-green-400 border border-green-500/20';
+        case 'FALSE':
+            return 'bg-red-500/10 text-red-400 border border-red-500/20';
+        case 'SKIP':
+        default:
+            return 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20';
+    }
+}
