@@ -118,42 +118,7 @@ def analyze_video():
         print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/transcript', methods=['GET'])
-def get_video_transcript():
-    """Get video transcript with fact checking."""
-    try:
-        video_url = request.args.get('video_url')
-        if not video_url:
-            return jsonify({"error": "No video URL provided"}), 400
-            
-        print(f"\nGetting transcript for video: {video_url}")
-        
-        # Extract video ID
-        video_id = extract_video_id(video_url)
-        if not video_id:
-            return jsonify({"error": "Invalid YouTube URL"}), 400
-            
-        # Get transcript
-        transcript = get_transcript(video_id)
-        if not transcript:
-            return jsonify({"error": "Could not retrieve transcript"}), 404
-            
-        # Get fact checks for the transcript
-        fact_check_results = analyze_with_llm(transcript, 'fact_check')
-        
-        # Combine transcript with fact checks
-        result = {
-            'transcript': transcript,
-            'fact_checks': fact_check_results if fact_check_results else {'results': []}
-        }
-        
-        return jsonify(result)
-        
-    except Exception as e:
-        print(f"Error in get_video_transcript: {str(e)}")
-        print("Traceback:")
-        print(traceback.format_exc())
-        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/summary', methods=['GET'])
 def get_video_summary():
