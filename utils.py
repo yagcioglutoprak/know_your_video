@@ -8,35 +8,7 @@ import time
 from functools import wraps
 import traceback
 
-def rate_limit_with_retry(max_retries=3, delay=5):
-    """Decorator to handle rate limiting with retries."""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            for attempt in range(max_retries):
-                try:
-                    return func(*args, **kwargs)
-                except Exception as e:
-                    if "rate limit" in str(e).lower() and attempt < max_retries - 1:
-                        print(f"Rate limit hit, retrying in {delay * (attempt + 1)} seconds...")
-                        time.sleep(delay * (attempt + 1))  # Exponential backoff
-                        continue
-                    raise
-            return func(*args, **kwargs)
-        return wrapper
-    return decorator
 
-def extract_video_id(url):
-    """Extract YouTube video ID from URL."""
-    print(f"\nExtracting video ID from URL: {url}")
-    pattern = r'(?:v=|\/)([0-9A-Za-z_-]{11}).*'
-    match = re.search(pattern, url)
-    if match:
-        video_id = match.group(1)
-        print(f"Extracted video ID: {video_id}")
-        return video_id
-    print("Could not extract video ID")
-    return None
 
 def get_video_info(url):
     """Get video title and description using YouTube Data API v3."""
