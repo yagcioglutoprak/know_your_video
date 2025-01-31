@@ -106,3 +106,49 @@ for entry in transcript:
         if not entry['fact_check']['is_true']:
             print(f"Correction: {entry['fact_check']['correction']}")
         print("---")
+
+
+@rate_limit_with_retry(max_retries=3, delay=5)
+def get_transcript(video_id):
+    """Get video transcript with timestamps in the video's original language."""
+    try:
+        print(f"\nGetting transcript for video ID: {video_id}")
+        
+        # Get list of available transcripts
+        print("Fetching available transcripts...")
+        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        
+        # Try to find auto-generated transcript in video's language
+        print("Looking for auto-generated transcript...")
+        available_transcript = None
+        
+        for transcript_info in transcript_list:
+            if transcript_info.is_generated:
+                print(f"Found auto-generated transcript in {transcript_info.language_code}")
+                available_transcript = transcript_info
+                break
+        
+        if not available_transcript:
+            print("No auto-generated transcripts found, looking for manual transcripts...")
+            try:
+                available_transcript = transcript_list.find_manually_created_transcript()
+                print(f"Found manual transcript in {available_transcript.language_code}")
+            except Exception as e:
+                print(f"Error finding manual transcript: {str(e)}")
+        
+        if not available_transcript:
+            print("No transcripts available for this video")
+            raise Exception("No transcripts available for this video")
+        
+        # Get the transcript in original language
+        print(f"Fetching transcript in {available_transcript.language_code}...")
+        transcript = available_transcript.fetch()
+        print(f"Successfully retrieved {len(transcript)} transcript segments")
+        
+        return transcript
+        
+    except Exception as e:
+        print(f"Error in get_transcript: {str(e)}")
+        print("Traceback:")
+        print(traceback.format_exc())
+        raise Exception(f"Error fetching transcript: {str(e)}")
