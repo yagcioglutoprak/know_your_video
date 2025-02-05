@@ -15,9 +15,13 @@ import json
 import asyncio
 import concurrent.futures
 from functools import partial
+from database import init_db, save_analysis, get_analysis
 
 # Load environment variables
 load_dotenv()
+
+# Initialize database
+init_db()
 
 # Create a ThreadPoolExecutor for running async tasks
 executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
@@ -97,6 +101,16 @@ def analyze_video():
                 return jsonify({'error': 'Failed to generate analysis. Please try again.'}), 500
                 
             print("Analysis complete")
+            
+            # Save analysis results to database
+            save_analysis(
+                video_id=video_id,
+                video_url=video_url,
+                video_info=video_info,
+                summary=summary,
+                key_points=key_points,
+                fact_check=fact_check
+            )
         except Exception as e:
             print(f"Error in LLM analysis: {str(e)}")
             return jsonify({'error': f'Error analyzing content: {str(e)}'}), 500
